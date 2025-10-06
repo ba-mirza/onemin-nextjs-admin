@@ -15,6 +15,7 @@ import {
 
 import Link from "next/link";
 import {usePathname} from "next/navigation";
+import {UserButton} from "@clerk/nextjs";
 
 const navMain = [
   {
@@ -24,7 +25,7 @@ const navMain = [
   },
   {
     title: 'Создание статьи',
-    url: '/dashboard/create-article',
+    url: '/dashboard/new',
     disabled: false,
   },
   {
@@ -50,7 +51,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <strong>Администрация</strong>
+        <div
+            className="flex flex-col items-center py-3.5 border-1 border-dashed border-gray-400 rounded-lg bg-white shadow-2xs">
+          <UserButton />
+          <strong>Администратор</strong>
+        </div>
       </SidebarHeader>
       <SidebarContent className="gap-0">
         <SidebarGroup>

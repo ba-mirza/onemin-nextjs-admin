@@ -40,9 +40,7 @@ const DashboardLayout = async (
                         </BreadcrumbList>
                     </Breadcrumb>
                 </header>
-                <main>
-                    {children}
-                </main>
+                {children}
             </SidebarInset>
         </SidebarProvider>
     )

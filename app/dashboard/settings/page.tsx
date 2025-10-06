@@ -1,6 +1,8 @@
 const SettingsPage = () => {
     return (
-        <h1>SETTINGS</h1>
+        <div>
+            <p className="opacity-75">В разработке...</p>
+        </div>
     )
 }
 

@@ -252,7 +252,7 @@ export function SimpleEditor({onChange, initialContent}: SimpleEditorProps) {
   }, [isMobile, mobileView])
 
   return (
-    <div className="simple-editor-wrapper">
+    <div>
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}

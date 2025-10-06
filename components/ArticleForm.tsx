@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input"
 import {z} from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {Button} from "@/components/ui/button";
 import {Select, SelectContent, SelectItem, SelectValue} from "./ui/select";
 import {SelectTrigger} from "@/components/ui/select";
 import {categories} from "@/constants";
@@ -152,8 +151,10 @@ const ArticleForm = () => {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" name="action" value="publish">Опубликовать</Button>
-                <Button type="submit" name="action" value="draft">Сохранить</Button>
+                <div className="flex gap-2">
+                    <button className="btn-primary" type="submit" name="action" value="publish">Опубликовать</button>
+                    <button className="btn-primary" type="submit" name="action" value="draft">Сохранить</button>
+                </div>
             </form>
         </Form>
     )

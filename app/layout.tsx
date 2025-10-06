@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import {ClerkProvider, SignedIn, SignedOut, SignIn,} from "@clerk/nextjs";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -14,23 +14,29 @@ const jetBrainsMono = JetBrains_Mono({
     display: 'swap',
 });
 
-export const metadata: Metadata = {
-    title: "Главная страница",
-    description: "Здесь находятся все новости в рамках одной минуты",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${jetBrainsMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+      <ClerkProvider appearance={{ variables: { colorPrimary: '#fe5933' } }}>
+          <html lang="en">
+            <body
+                className={`${inter.variable} ${jetBrainsMono.variable} antialiased`}
+            >
+                <SignedOut>
+                    <main>
+                        <section className="flex justify-center">
+                            <SignIn />
+                        </section>
+                    </main>
+                </SignedOut>
+                <SignedIn>
+                    {children}
+                </SignedIn>
+            </body>
+          </html>
+      </ClerkProvider>
   );
 }
