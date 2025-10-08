@@ -1,7 +1,11 @@
 import ArticleForm from "@/components/ArticleForm";
 
 const NewPage = () => {
-    return <ArticleForm />
+    return (
+        <section>
+            <ArticleForm />
+        </section>
+    )
 }
 
 export default NewPage

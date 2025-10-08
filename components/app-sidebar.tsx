@@ -19,7 +19,7 @@ import {UserButton} from "@clerk/nextjs";
 
 const navMain = [
   {
-    title: "Default page",
+    title: "На главную",
     url: "/dashboard",
     disabled: false,
   },
