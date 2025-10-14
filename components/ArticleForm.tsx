@@ -3,6 +3,7 @@
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -17,43 +18,38 @@ import {Select, SelectContent, SelectItem, SelectValue} from "./ui/select";
 import {SelectTrigger} from "@/components/ui/select";
 import {categories} from "@/constants";
 import {SimpleEditor} from "@/components/tiptap-templates/simple/simple-editor";
-
-const formSchema = z.object({
-    previewImage: z
-        .any()
-        .refine((file) => {
-            if (!file || !(file instanceof File)) return false;
-            return file.size <= 5 * 1024 * 1024; // 5MB limit
-        }, "Нужно выбрать файл не более 5MB"),
-    title: z.string().min(3, {message: 'Название не должно быть меньше 3 символов'}),
-    excerpt: z.string().optional(),
-    category: z.string().min(1, "Выберите категорию"),
-    tags: z.array(z.string()).optional(),
-    content: z.any().refine((content) => {
-        if (!content) return false;
-        // Проверяем что контент не пустой (базовая проверка)
-        if (content.content && Array.isArray(content.content)) {
-            return content.content.some((node: any) =>
-                node.content && node.content.length > 0
-            );
-        }
-        return false;
-    }, "Контент статьи не может быть пустым"),
-})
+import {TagsInput} from "@/components/ui/custom/tags-input";
+import {articleForm} from "@/lib/schema/form";
+import {Switch} from "@/components/ui/switch";
+import {createArticle} from "@/lib/supabase/action/article.action";
+import {toast} from "sonner";
 
 const ArticleForm = () => {
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof articleForm>>({
+        resolver: zodResolver(articleForm),
         defaultValues: {
             title: '',
             excerpt: '',
             category: '',
+            lang: 'kz',
             content: {},
+            tags: [],
+            isPublished: false,
         }
     })
 
-    const onSubmit = (values: z.infer<typeof formSchema>) => {
-        console.log(values)
+    const onSubmit = async (values: z.infer<typeof articleForm>) => {
+        const response = await createArticle(values)
+
+        if (response && response.success) {
+            toast(response.message, {
+                description: Date.now().toString(),
+            })
+        } else {
+            toast("Something went wrong!")
+        }
+
+        return
     }
 
     return (
@@ -122,14 +118,77 @@ const ArticleForm = () => {
                                         <SelectValue placeholder="Выберите категорию" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {categories.map((category: string) => (
-                                            <SelectItem className="capitalize" key={category} value={category}>
-                                                {category}
+                                        {categories.map((category) => (
+                                            <SelectItem className="capitalize" key={category.id} value={category.id}>
+                                                {category.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="lang"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Язык статьи</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Выберите язык" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="ru">Русский</SelectItem>
+                                    <SelectItem value="kz">Қазақша</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="isPublished"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <FormLabel className="text-base">
+                                    Опубликовать статью
+                                </FormLabel>
+                                <FormDescription>
+                                    Статья будет видна всем пользователям
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="tags"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Теги</FormLabel>
+                            <FormControl>
+                                <TagsInput
+                                    value={field.value || []}
+                                    onChange={field.onChange}
+                                    placeholder="Введите тег и нажмите Enter или пробел"
+                                />
+                            </FormControl>
+                            <FormDescription>
+                                Добавьте теги для лучшей категоризации статьи
+                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -152,8 +211,7 @@ const ArticleForm = () => {
                     )}
                 />
                 <div className="flex gap-2">
-                    <button className="btn-primary" type="submit" name="action" value="publish">Опубликовать</button>
-                    <button className="btn-primary" type="submit" name="action" value="draft">Сохранить</button>
+                    <button className="btn-primary" type="submit" name="action" value="draft">Создать</button>
                 </div>
             </form>
         </Form>
