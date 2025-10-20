@@ -1,13 +1,11 @@
-type statusText = "success" | "error";
-
 export type ApiSuccess<T> = {
-  status: statusText;
+  status: "success";
   data: T;
   message?: string;
 };
 
 export type ApiError = {
-  status: statusText;
+  status: "error";
   error: string;
   code?: string;
 };

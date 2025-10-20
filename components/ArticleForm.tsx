@@ -23,6 +23,7 @@ import { articleForm } from "@/lib/schema/form";
 import { Switch } from "@/components/ui/switch";
 import { createArticle } from "@/lib/supabase/action/article.action";
 import { toast } from "sonner";
+import router from "next/router";
 
 const ArticleForm = () => {
   const form = useForm<z.infer<typeof articleForm>>({
@@ -39,17 +40,25 @@ const ArticleForm = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof articleForm>) => {
-    const response = await createArticle(values);
+    const result = await createArticle(values);
 
-    if (response && response.status) {
-      toast(response.message, {
-        description: Date.now().toString(),
+    if (!result) {
+      toast("Ошибка", {
+        description: "Не удалось получить ответ от сервера",
       });
-    } else {
-      toast("Something went wrong!");
+      return;
     }
 
-    return;
+    if (result.status === "success") {
+      toast(result.message || "Статья успешно создана", {
+        description: new Date().toLocaleString("ru-RU"),
+      });
+      router.push("/dashboard");
+    } else {
+      toast("Ошибка", {
+        description: result.error,
+      });
+    }
   };
 
   return (
