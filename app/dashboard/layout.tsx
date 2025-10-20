@@ -1,11 +1,15 @@
-import {SidebarInset, SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
-import {AppSidebar} from "@/components/app-sidebar";
 import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbSeparator
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
 // const LoadingTemplate = (
@@ -19,31 +23,26 @@ import {
 //     </div>
 // )
 
-const DashboardLayout = async (
-    { children }: { children: React.ReactNode }
-) => {
+const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink href="#">#</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
+  );
+};
 
-    return (
-        <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-                <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
-                    <SidebarTrigger className="-ml-1" />
-                    <Breadcrumb>
-                        <BreadcrumbList>
-                            <BreadcrumbItem className="hidden md:block">
-                                <BreadcrumbLink href="#">
-                                    #
-                                </BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator className="hidden md:block" />
-                        </BreadcrumbList>
-                    </Breadcrumb>
-                </header>
-                {children}
-            </SidebarInset>
-        </SidebarProvider>
-    )
-}
-
-export default DashboardLayout
+export default DashboardLayout;
