@@ -1,35 +1,27 @@
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+"use server";
 
-const DashboardPage = () => {
+import TableList from "@/components/TableList";
+import { getAllArticles } from "@/lib/supabase/action/article.action";
+import { Article } from "@/lib/types/props";
+
+const DashboardPage = async () => {
+  const result = await getAllArticles();
+
+  if (result.status !== "success") {
+    return (
+      <section>
+        <div className="text-center text-red-500 py-8">
+          Ошибка загрузки статей: {result.error}
+        </div>
+      </section>
+    );
+  }
+
+  const articles: Article[] = result.data;
+
   return (
     <section>
-      <Table>
-        <TableCaption>A list of your recent invoices.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">ID</TableHead>
-            <TableHead>Заголовок</TableHead>
-            <TableHead>Статус</TableHead>
-            <TableHead className="text-right">Дата</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell className="font-medium">INV001</TableCell>
-            <TableCell>Paid</TableCell>
-            <TableCell>Credit Card</TableCell>
-            <TableCell className="text-right">$250.00</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+      <TableList articles={articles} />
     </section>
   );
 };

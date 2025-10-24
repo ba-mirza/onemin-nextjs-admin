@@ -18,7 +18,7 @@ export const articleForm = z.object({
     // Проверяем что контент не пустой (базовая проверка)
     if (content.content && Array.isArray(content.content)) {
       return content.content.some(
-        (node: any) => node.content && node.content.length > 0,
+        (node) => node.content && node.content.length > 0,
       );
     }
     return false;
@@ -26,3 +26,32 @@ export const articleForm = z.object({
   tags: z.array(z.string()).optional(),
   isPublished: z.boolean(),
 });
+
+export const updateArticleForm = articleForm
+  .partial()
+  .extend({
+    id: z.string().uuid("Некорректный идентификатор статьи"),
+    views_count_custom: z
+      .number()
+      .int()
+      .min(0, "Количество просмотров должно быть неотрицательным числом")
+      .nullable()
+      .optional(),
+    use_custom_views: z.boolean().optional(),
+  })
+  .refine(
+    (data) => {
+      if (
+        data.use_custom_views === true &&
+        (data.views_count_custom === null ||
+          data.views_count_custom === undefined)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Укажите кастомное количество просмотров",
+      path: ["views_count_custom"],
+    },
+  );

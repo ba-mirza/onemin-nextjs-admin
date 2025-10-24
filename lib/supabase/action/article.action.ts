@@ -17,12 +17,13 @@ export const getAllArticles = async (filters?: {
     const supabase = await createSupabaseClient();
 
     let query = supabase.from("articles").select(`
-                *,
-                category:categories(id, name, slug),
-                tags:article_tags(
-                    tag:tags(id, name, slug)
-                )
-            `);
+        *,
+        category:categories(id, name, slug),
+        tags:article_tags(
+          tag:tags(id, name, slug)
+        ),
+        stats:article_stats(views_count)
+      `);
 
     if (filters?.lang) {
       query = query.eq("lang", filters.lang);
@@ -45,17 +46,21 @@ export const getAllArticles = async (filters?: {
       );
     }
 
-    const articlesWithTags = articles.map((article) => ({
+    const articlesWithDetails = articles.map((article) => ({
       ...article,
-      tags: article.tags.map((at: { tag: string }) => at.tag),
+      tags: article.tags.map((at) => at.tag),
+      views_count: article.stats?.views_count || 0,
     }));
 
-    return successResponse(articlesWithTags);
+    articlesWithDetails.forEach((a) => delete a.stats);
+
+    return successResponse(articlesWithDetails);
   } catch (error) {
     console.error("Error fetching articles:", error);
-    if (error instanceof Error) {
-      return errorResponse(error.message, "INTERNAL_SERVER_ERROR");
-    }
+    return errorResponse(
+      error instanceof Error ? error.message : "Неизвестная ошибка",
+      "INTERNAL_SERVER_ERROR",
+    );
   }
 };
 
@@ -154,6 +159,8 @@ export const createArticle = async (data: z.infer<typeof articleForm>) => {
         is_published: data.isPublished,
         published_at: publishedAt,
         updated_at: new Date().toISOString(),
+        views_count_custom: data.views_count_custom || 0,
+        use_custom_views: data.use_custom_views || false,
       })
       .select()
       .single();
