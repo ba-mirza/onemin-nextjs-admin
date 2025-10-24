@@ -212,7 +212,10 @@ const ArticleForm = () => {
               <FormLabel>Содержание статьи</FormLabel>
               <FormControl>
                 <div className="border rounded-md">
-                  <SimpleEditor onChange={field.onChange} />
+                  <SimpleEditor
+                    initialContent={field.value}
+                    onChange={field.onChange}
+                  />
                 </div>
               </FormControl>
               <FormMessage />

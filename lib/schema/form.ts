@@ -15,7 +15,6 @@ export const articleForm = z.object({
   lang: z.enum(["ru", "kz"], { message: "Выберите язык" }),
   content: z.any().refine((content) => {
     if (!content) return false;
-    // Проверяем что контент не пустой (базовая проверка)
     if (content.content && Array.isArray(content.content)) {
       return content.content.some(
         (node) => node.content && node.content.length > 0,

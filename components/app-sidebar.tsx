@@ -34,11 +34,6 @@ const navMain = [
     disabled: false,
   },
   {
-    title: "Управление тегами",
-    url: "/dashboard/tags",
-    disabled: false,
-  },
-  {
     title: "Настройки",
     url: "/dashboard/settings",
     disabled: true,

@@ -10,20 +10,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Article } from "@/lib/types/props";
+import UpdateForm from "./update-form";
 
 const TableList = ({ articles }: { articles: Article[] }) => {
-  const editArticle = (id: string) => {
-    console.log(`Editing article with ID: ${id}`);
-  };
-
   return (
     <Table>
-      <TableCaption>A list of your recent invoices.</TableCaption>
+      <TableCaption>Список статей</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="w-[100px]">ID</TableHead>
-          <TableHead>Заголовок</TableHead>
-          <TableHead>Статус</TableHead>
+          <TableHead className="w-[200px]">Заголовок</TableHead>
+          <TableHead className="text-center">Статус</TableHead>
           <TableHead className="text-right">Дата</TableHead>
         </TableRow>
       </TableHeader>
@@ -39,22 +36,29 @@ const TableList = ({ articles }: { articles: Article[] }) => {
           </TableRow>
         ) : (
           articles.map((article) => (
-            <TableRow onClick={() => editArticle(article.id)} key={article.id}>
-              <TableCell className="font-medium">
-                {article.id.slice(0, 8)}...
-              </TableCell>
-              <TableCell>{article.title}</TableCell>
-              <TableCell>
-                {article.is_published ? (
-                  <span className="text-green-600">Опубликовано</span>
-                ) : (
-                  <span className="text-yellow-600">Черновик</span>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                {new Date(article.updated_at).toLocaleDateString("ru-RU")}
-              </TableCell>
-            </TableRow>
+            <UpdateForm articleId={article} key={article.id}>
+              <TableRow>
+                <TableCell className="font-medium">
+                  {article.id.slice(0, 12)}...
+                </TableCell>
+                <TableCell
+                  className="max-w-[300px] truncate"
+                  title={article.title}
+                >
+                  {article.title}
+                </TableCell>
+                <TableCell className="text-center">
+                  {article.is_published ? (
+                    <span className="text-green-600">Опубликовано</span>
+                  ) : (
+                    <span className="text-yellow-600">Черновик</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  {new Date(article.updated_at).toLocaleDateString("ru-RU")}
+                </TableCell>
+              </TableRow>
+            </UpdateForm>
           ))
         )}
       </TableBody>

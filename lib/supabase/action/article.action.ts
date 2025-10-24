@@ -2,11 +2,12 @@
 
 import { createSupabaseClient } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
-import { articleForm } from "@/lib/schema/form";
+import { articleForm, updateArticleForm } from "@/lib/schema/form";
 import z from "zod";
 import slugify from "slugify";
 import { generateUniqueSlug } from "@/lib/utils";
 import { errorResponse, successResponse } from "@/lib/types/api-response";
+import { Article } from "@/lib/types/props";
 
 export const getAllArticles = async (filters?: {
   lang?: "ru" | "kz";
@@ -159,8 +160,8 @@ export const createArticle = async (data: z.infer<typeof articleForm>) => {
         is_published: data.isPublished,
         published_at: publishedAt,
         updated_at: new Date().toISOString(),
-        views_count_custom: data.views_count_custom || 0,
-        use_custom_views: data.use_custom_views || false,
+        views_count_custom: 0,
+        use_custom_views: false,
       })
       .select()
       .single();
@@ -190,12 +191,183 @@ export const createArticle = async (data: z.infer<typeof articleForm>) => {
 
       console.log("Article created successfully:", article);
 
-      return successResponse(article, `Статья успешно ${status}`);
+      return successResponse(article, `Статья успешно создана`);
     }
   } catch (e) {
     console.error("Error creating article:", e);
     if (e instanceof Error) {
       return errorResponse(e, "INTERNAL_ERROR");
     }
+  }
+};
+
+export const updateArticle = async (
+  data: z.infer<typeof updateArticleForm>,
+) => {
+  try {
+    const supabase = await createSupabaseClient();
+    const { userId } = await auth();
+
+    if (!userId) {
+      return errorResponse("Пользователь не авторизован", "UNAUTHORIZED");
+    }
+
+    const { data: existingArticle, error: fetchError } = await supabase
+      .from("articles")
+      .select("id, author_id, preview_image, slug")
+      .eq("id", data.id)
+      .single();
+
+    if (fetchError || !existingArticle) {
+      return errorResponse("Статья не найдена", "NOT_FOUND");
+    }
+
+    if (existingArticle.author_id !== userId) {
+      return errorResponse(
+        "Нет прав для редактирования этой статьи",
+        "FORBIDDEN",
+      );
+    }
+
+    const updateData: Partial<Article> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.previewImage && data.previewImage instanceof File) {
+      const file = data.previewImage;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `articles/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("article-images")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        return errorResponse(
+          `Ошибка загрузки изображения: ${uploadError.message}`,
+          "UPLOAD_ERROR",
+        );
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("article-images").getPublicUrl(filePath);
+
+      updateData.preview_image = publicUrl;
+
+      if (existingArticle.preview_image) {
+        const oldPath = existingArticle.preview_image
+          .split("/")
+          .slice(-2)
+          .join("/");
+        await supabase.storage.from("article-images").remove([oldPath]);
+      }
+    }
+
+    if (data.title) {
+      updateData.title = data.title;
+      updateData.slug = generateUniqueSlug(data.title);
+    }
+
+    if (data.excerpt !== undefined) updateData.excerpt = data.excerpt;
+    if (data.category) updateData.category_id = parseInt(data.category);
+    if (data.lang) updateData.lang = data.lang;
+    if (data.content) updateData.content = data.content;
+
+    if (data.isPublished !== undefined) {
+      updateData.is_published = data.isPublished;
+
+      const { data: currentArticle } = await supabase
+        .from("articles")
+        .select("published_at")
+        .eq("id", data.id)
+        .single();
+
+      if (data.isPublished && !currentArticle?.published_at) {
+        updateData.published_at = new Date().toISOString();
+      }
+      if (!data.isPublished) {
+        updateData.published_at = null;
+      }
+    }
+
+    if (data.use_custom_views !== undefined) {
+      updateData.use_custom_views = data.use_custom_views;
+
+      if (!data.use_custom_views) {
+        updateData.views_count_custom = null;
+      }
+    }
+
+    if (data.views_count_custom !== undefined) {
+      updateData.views_count_custom = data.views_count_custom;
+    }
+
+    const { data: article, error: updateError } = await supabase
+      .from("articles")
+      .update(updateData)
+      .eq("id", data.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      return errorResponse(
+        `Ошибка обновления статьи: ${updateError.message}`,
+        "DATABASE_ERROR",
+      );
+    }
+
+    if (data.tags !== undefined) {
+      await supabase.from("article_tags").delete().eq("article_id", data.id);
+
+      const tagIds: string[] = [];
+
+      for (const tagName of data.tags) {
+        const tagSlug = slugify(tagName, {
+          lower: true,
+          strict: true,
+          locale: "ru",
+        });
+
+        const { data: existingTag } = await supabase
+          .from("tags")
+          .select("id")
+          .eq("slug", tagSlug)
+          .single();
+
+        if (existingTag) {
+          tagIds.push(existingTag.id);
+        } else {
+          const { data: newTag } = await supabase
+            .from("tags")
+            .insert({ name: tagName, slug: tagSlug })
+            .select("id")
+            .single();
+
+          if (newTag) tagIds.push(newTag.id);
+        }
+      }
+
+      if (tagIds.length > 0) {
+        const articleTags = tagIds.map((tagId) => ({
+          article_id: data.id,
+          tag_id: tagId,
+        }));
+
+        await supabase.from("article_tags").insert(articleTags);
+      }
+    }
+
+    return successResponse(article, "Статья успешно обновлена");
+  } catch (error) {
+    console.error("Error updating article:", error);
+    return errorResponse(
+      error instanceof Error ? error.message : "Неизвестная ошибка",
+      "INTERNAL_ERROR",
+    );
   }
 };

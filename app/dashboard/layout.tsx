@@ -4,13 +4,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { DynamicBreadcrumbs } from "@/components/dyn-breadcrumbs";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
@@ -19,14 +13,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
       <SidebarInset>
         <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">#</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-            </BreadcrumbList>
-          </Breadcrumb>
+          <DynamicBreadcrumbs />
         </header>
         {children}
       </SidebarInset>
