@@ -35,7 +35,7 @@ export default function RootLayout({
             </main>
           </SignedOut>
           <SignedIn>
-            <main>{children}</main>
+            {children}
             <SpeedInsights />
           </SignedIn>
           <Toaster />

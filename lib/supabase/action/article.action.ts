@@ -371,3 +371,61 @@ export const updateArticle = async (
     );
   }
 };
+
+export const deleteArticle = async (articleId: string) => {
+  try {
+    const supabase = await createSupabaseClient();
+    const { userId } = await auth();
+
+    if (!userId) {
+      return errorResponse("Пользователь не авторизован", "UNAUTHORIZED");
+    }
+
+    const { data: article, error: fetchError } = await supabase
+      .from("articles")
+      .select("id, author_id, preview_image")
+      .eq("id", articleId)
+      .single();
+
+    if (fetchError || !article) {
+      return errorResponse("Статья не найдена", "NOT_FOUND");
+    }
+
+    if (article.author_id !== userId) {
+      return errorResponse("Нет прав для удаления этой статьи", "FORBIDDEN");
+    }
+
+    if (article.preview_image) {
+      try {
+        const filePath = article.preview_image.split("/").slice(-2).join("/");
+        await supabase.storage.from("article-images").remove([filePath]);
+      } catch (error) {
+        console.error("Error deleting image:", error);
+      }
+    }
+
+    await supabase.from("article_tags").delete().eq("article_id", articleId);
+
+    await supabase.from("article_stats").delete().eq("article_id", articleId);
+
+    const { error: deleteError } = await supabase
+      .from("articles")
+      .delete()
+      .eq("id", articleId);
+
+    if (deleteError) {
+      return errorResponse(
+        `Ошибка удаления статьи: ${deleteError.message}`,
+        "DATABASE_ERROR",
+      );
+    }
+
+    return successResponse(null, "Статья успешно удалена");
+  } catch (error) {
+    console.error("Error deleting article:", error);
+    return errorResponse(
+      error instanceof Error ? error.message : "Неизвестная ошибка",
+      "INTERNAL_ERROR",
+    );
+  }
+};

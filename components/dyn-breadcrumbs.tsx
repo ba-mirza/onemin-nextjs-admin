@@ -32,12 +32,12 @@ export function DynamicBreadcrumbs() {
     <Breadcrumb>
       <BreadcrumbList>
         {breadcrumbs.map((crumb, index) => (
-          <>
+          <div key={index}>
             <BreadcrumbItem key={index}>{crumb}</BreadcrumbItem>
             {index < breadcrumbs.length - 1 && (
               <BreadcrumbSeparator key={`sep-${index}`} />
             )}
-          </>
+          </div>
         ))}
       </BreadcrumbList>
     </Breadcrumb>

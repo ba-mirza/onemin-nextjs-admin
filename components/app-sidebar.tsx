@@ -48,7 +48,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <div className="flex flex-col items-center py-3.5 border-1 border-dashed border-gray-400 rounded-lg bg-white shadow-2xs">
           <UserButton />
-          <strong>Администратор</strong>
+          <strong className="select-none">Администратор</strong>
+          <p className="text-sm">Асель Болатова</p>
         </div>
       </SidebarHeader>
       <SidebarContent className="gap-0">
@@ -58,6 +59,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
+                    className="hover:outline hover:outline-dashed p-4"
                     isActive={pathname === item.url.slice(1)}
                     asChild
                   >
