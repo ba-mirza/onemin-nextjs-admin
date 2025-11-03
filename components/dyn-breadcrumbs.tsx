@@ -30,13 +30,15 @@ export function DynamicBreadcrumbs() {
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
+      <BreadcrumbList className="flex gap-4 items-center">
         {breadcrumbs.map((crumb, index) => (
           <div key={index}>
-            <BreadcrumbItem key={index}>{crumb}</BreadcrumbItem>
-            {index < breadcrumbs.length - 1 && (
-              <BreadcrumbSeparator key={`sep-${index}`} />
-            )}
+            <BreadcrumbItem className="select-none" key={index}>
+              {crumb}
+              {index < breadcrumbs.length - 1 && (
+                <BreadcrumbSeparator key={`sep-${index}`} />
+              )}
+            </BreadcrumbItem>
           </div>
         ))}
       </BreadcrumbList>

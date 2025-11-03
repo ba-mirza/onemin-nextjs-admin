@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { Trash2Icon } from "lucide-react";
+import { FileText, Trash2Icon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -45,6 +45,11 @@ const TableList = ({ articles }: { articles: Article[] }) => {
       article.title.toLowerCase().includes(query),
     );
   }, [articles, debouncedSearchQuery]);
+
+  const handlePreview = (articleId: Article) => {
+    sessionStorage.setItem("previewArticle", JSON.stringify(articleId));
+    window.open(`/preview/${articleId.id}`, "_blank");
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -128,17 +133,20 @@ const TableList = ({ articles }: { articles: Article[] }) => {
                   {new Date(article.updated_at).toLocaleDateString("ru-RU")}
                 </TableCell>
                 <TableCell className="flex gap-4 justify-center">
+                  <Button
+                    onClick={() => handlePreview(article)}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <FileText />
+                  </Button>
                   <UpdateForm articleId={article}>
                     <Button variant="outline" size="sm">
                       Править
                     </Button>
                   </UpdateForm>
                   <AlertDelete articleId={article.id}>
-                    <Button
-                      className="rounded-full"
-                      size="sm"
-                      variant="outline"
-                    >
+                    <Button size="icon" variant="outline">
                       <Trash2Icon color="red" />
                     </Button>
                   </AlertDelete>

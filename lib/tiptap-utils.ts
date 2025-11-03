@@ -2,6 +2,10 @@ import type { Node as TiptapNode } from "@tiptap/pm/model";
 import { NodeSelection, Selection, TextSelection } from "@tiptap/pm/state";
 import type { Editor } from "@tiptap/react";
 
+import { generateHTML } from "@tiptap/html";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export const MAC_SYMBOLS: Record<string, string> = {
@@ -393,4 +397,26 @@ export function sanitizeUrl(
     // If URL creation fails, it's considered invalid
   }
   return "#";
+}
+
+export function tiptapToHtml(content: any): string {
+  if (!content) return "";
+
+  try {
+    return generateHTML(content, [
+      StarterKit.configure({
+        link: false,
+      }),
+      Link.configure({
+        openOnClick: true,
+        HTMLAttributes: {
+          target: "_blank",
+          rel: "noopener noreferrer",
+        },
+      }),
+    ]);
+  } catch (error) {
+    console.error("Error converting Tiptap content to HTML:", error);
+    return "<p>Ошибка отображения контента</p>";
+  }
 }

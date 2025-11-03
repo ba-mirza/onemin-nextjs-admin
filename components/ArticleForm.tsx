@@ -194,7 +194,7 @@ const ArticleForm = () => {
                 <TagsInput
                   value={field.value || []}
                   onChange={field.onChange}
-                  placeholder="Введите тег и нажмите Enter или пробел"
+                  placeholder="Введите тег и нажмите Enter"
                 />
               </FormControl>
               <FormDescription>
