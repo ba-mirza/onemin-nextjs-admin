@@ -53,7 +53,7 @@ const TableList = ({ articles }: { articles: Article[] }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Alert variant="warn">
+      <Alert className="text-lg" variant="warn">
         <AlertTitle>Предупреждение!</AlertTitle>
         <AlertDescription>
           Фильтр по колонкам на данный момент недоступен
@@ -61,7 +61,7 @@ const TableList = ({ articles }: { articles: Article[] }) => {
       </Alert>
       <div className="flex gap-4 items-center">
         <Input
-          className="w-1/3"
+          className="w-1/3 text-lg::placeholder"
           type="text"
           placeholder="Поиск по заголовку"
           value={searchQuery}
@@ -69,13 +69,19 @@ const TableList = ({ articles }: { articles: Article[] }) => {
         />
         {isSearching && <Spinner />}
         <Select>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] text-lg">
             <SelectValue placeholder="Фильтр" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="category">По категориям</SelectItem>
-            <SelectItem value="tag">По тегам</SelectItem>
-            <SelectItem value="isPublished">По датам</SelectItem>
+            <SelectItem className="text-lg" value="category">
+              По категориям
+            </SelectItem>
+            <SelectItem className="text-lg" value="tag">
+              По тегам
+            </SelectItem>
+            <SelectItem className="text-lg" value="isPublished">
+              По датам
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -90,7 +96,7 @@ const TableList = ({ articles }: { articles: Article[] }) => {
           {!debouncedSearchQuery && <span>Список статей</span>}
         </TableCaption>
         <TableHeader>
-          <TableRow>
+          <TableRow className="text-lg">
             <TableHead className="w-[100px]">ID</TableHead>
             <TableHead className="w-[200px]">Заголовок</TableHead>
             <TableHead className="text-center">Статус</TableHead>
@@ -100,7 +106,7 @@ const TableList = ({ articles }: { articles: Article[] }) => {
         </TableHeader>
         <TableBody className="select-none">
           {filteredArticles.length === 0 ? (
-            <TableRow>
+            <TableRow className="text-lg">
               <TableCell
                 colSpan={4}
                 className="text-center text-muted-foreground"
@@ -112,9 +118,11 @@ const TableList = ({ articles }: { articles: Article[] }) => {
             </TableRow>
           ) : (
             filteredArticles.map((article) => (
-              <TableRow key={article.id}>
-                <TableCell className="font-medium p-4">
-                  {article.id.slice(0, 12)}...
+              <TableRow className="text-lg" key={article.id}>
+                <TableCell className="font-medium py-4">
+                  <div className="border border-dashed border-gray-200 rounded-lg p-2">
+                    {article.id.slice(0, 6)}...
+                  </div>
                 </TableCell>
                 <TableCell
                   className="max-w-[300px] truncate"
@@ -141,7 +149,7 @@ const TableList = ({ articles }: { articles: Article[] }) => {
                     <FileText />
                   </Button>
                   <UpdateForm articleId={article}>
-                    <Button variant="outline" size="sm">
+                    <Button className="text-lg" variant="outline" size="lg">
                       Править
                     </Button>
                   </UpdateForm>

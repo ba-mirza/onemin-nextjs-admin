@@ -13,6 +13,7 @@ export const getAllArticles = async (filters?: {
   lang?: "ru" | "kz";
   category?: number;
   isPublished?: boolean;
+  limit?: number;
 }) => {
   try {
     const supabase = await createSupabaseClient();
