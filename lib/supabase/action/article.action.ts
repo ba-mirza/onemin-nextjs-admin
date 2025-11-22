@@ -7,25 +7,81 @@ import z from "zod";
 import slugify from "slugify";
 import { generateUniqueSlug } from "@/lib/utils";
 import { errorResponse, successResponse } from "@/lib/types/api-response";
-import { Article } from "@/lib/types/props";
+import { Article, Lang } from "@/lib/types/props";
 
-export const getAllArticles = async (filters?: {
-  lang?: "ru" | "kz";
+export const getAllArticlesLight = async (filters?: {
+  lang?: Lang;
   category?: number;
   isPublished?: boolean;
   limit?: number;
+  offset?: number;
 }) => {
   try {
     const supabase = await createSupabaseClient();
 
+    const limit = filters?.limit || 50;
+    const offset = filters?.offset || 0;
+
     let query = supabase.from("articles").select(`
+        id,
+        title,
+        slug,
+        lang,
+        is_published,
+        updated_at,
+        category_id,
+        category:categories(id, name, slug)
+      `);
+
+    if (filters?.lang) {
+      query = query.eq("lang", filters.lang);
+    }
+    if (filters?.category) {
+      query = query.eq("category_id", filters.category);
+    }
+    if (filters?.isPublished !== undefined) {
+      query = query.eq("is_published", filters.isPublished);
+    }
+
+    const { data: articles, error } = await query
+      .order("updated_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      return errorResponse(
+        `Ошибка получения статей: ${error.message}`,
+        "DATABASE_ERROR",
+      );
+    }
+
+    return successResponse(articles || []);
+  } catch (error) {
+    console.error("Error fetching articles:", error);
+    return errorResponse(
+      error instanceof Error ? error.message : "Неизвестная ошибка",
+      "INTERNAL_SERVER_ERROR",
+    );
+  }
+};
+
+export const getAllArticles = async (filters?: {
+  lang?: Lang;
+  category?: number;
+  isPublished?: boolean;
+}) => {
+  try {
+    const supabase = await createSupabaseClient();
+
+    let query = supabase.from("articles").select(
+      `
         *,
         category:categories(id, name, slug),
         tags:article_tags(
           tag:tags(id, name, slug)
         ),
         stats:article_stats(views_count)
-      `);
+      `,
+    );
 
     if (filters?.lang) {
       query = query.eq("lang", filters.lang);
@@ -427,6 +483,50 @@ export const deleteArticle = async (articleId: string) => {
     return errorResponse(
       error instanceof Error ? error.message : "Неизвестная ошибка",
       "INTERNAL_ERROR",
+    );
+  }
+};
+
+export const getArticleById = async (id: string) => {
+  try {
+    const supabase = await createSupabaseClient();
+
+    const { data: article, error } = await supabase
+      .from("articles")
+      .select(
+        `
+        *,
+        category:categories(id, name, slug),
+        tags:article_tags(
+          tag:tags(id, name, slug)
+        ),
+        stats:article_stats(views_count)
+      `,
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      return errorResponse(
+        `Ошибка получения статьи: ${error.message}`,
+        "DATABASE_ERROR",
+      );
+    }
+
+    const articleWithDetails = {
+      ...article,
+      tags: article.tags.map((at: any) => at.tag),
+      views_count: article.stats?.views_count || 0,
+    };
+
+    delete articleWithDetails.stats;
+
+    return successResponse(articleWithDetails);
+  } catch (error) {
+    console.error("Error fetching article:", error);
+    return errorResponse(
+      error instanceof Error ? error.message : "Неизвестная ошибка",
+      "INTERNAL_SERVER_ERROR",
     );
   }
 };

@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Article } from "@/lib/types/props";
+import { ArticleTable } from "@/lib/types/props";
 import UpdateForm from "./update-form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -30,23 +30,40 @@ import AlertDelete from "./alert-delete";
 import { useMemo, useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Spinner } from "./ui/spinner";
+import { useBatchPagination } from "@/hooks/use-batch-pagination";
+import Pagination from "./table-pagination";
 
-const TableList = ({ articles }: { articles: Article[] }) => {
+const TableList = ({ articles }: { articles: ArticleTable[] }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 1200);
   const isSearching = searchQuery !== debouncedSearchQuery;
 
+  const {
+    currentArticles,
+    currentPage,
+    totalPages,
+    isLoading,
+    hasNextPage,
+    hasPrevPage,
+    goToPage,
+    totalArticles,
+  } = useBatchPagination({
+    initialArticles: articles,
+    batchSize: 50,
+    pageSize: 10,
+  });
+
   const filteredArticles = useMemo(() => {
     if (!debouncedSearchQuery.trim()) {
-      return articles;
+      return currentArticles;
     }
     const query = debouncedSearchQuery.toLowerCase();
-    return articles.filter((article) =>
+    return currentArticles.filter((article) =>
       article.title.toLowerCase().includes(query),
     );
-  }, [articles, debouncedSearchQuery]);
+  }, [currentArticles, debouncedSearchQuery]);
 
-  const handlePreview = (articleId: Article) => {
+  const handlePreview = (articleId: ArticleTable) => {
     sessionStorage.setItem("previewArticle", JSON.stringify(articleId));
     window.open(`/preview/${articleId.id}`, "_blank");
   };
@@ -87,13 +104,14 @@ const TableList = ({ articles }: { articles: Article[] }) => {
       </div>
       <Table>
         <TableCaption>
-          {" "}
-          {debouncedSearchQuery && (
+          {debouncedSearchQuery ? (
+            <span>Найдено: {filteredArticles.length} на текущей странице</span>
+          ) : (
             <span>
-              Найдено: {filteredArticles.length} из {articles.length}
+              Загружено статей: {totalArticles} | Страница {currentPage} из{" "}
+              {totalPages}
             </span>
           )}
-          {!debouncedSearchQuery && <span>Список статей</span>}
         </TableCaption>
         <TableHeader>
           <TableRow className="text-lg">
@@ -148,7 +166,7 @@ const TableList = ({ articles }: { articles: Article[] }) => {
                   >
                     <FileText />
                   </Button>
-                  <UpdateForm articleId={article}>
+                  <UpdateForm articleId={article.id}>
                     <Button className="text-lg" variant="outline" size="lg">
                       Править
                     </Button>
@@ -164,6 +182,15 @@ const TableList = ({ articles }: { articles: Article[] }) => {
           )}
         </TableBody>
       </Table>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        hasNextPage={hasNextPage}
+        hasPrevPage={hasPrevPage}
+        onPageChange={goToPage}
+        isLoading={isLoading}
+      />
     </div>
   );
 };

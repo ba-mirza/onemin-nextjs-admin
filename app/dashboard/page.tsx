@@ -1,11 +1,11 @@
 "use server";
 
 import TableList from "@/components/TableList";
-import { getAllArticles } from "@/lib/supabase/action/article.action";
-import { Article } from "@/lib/types/props";
+import { getAllArticlesLight } from "@/lib/supabase/action/article.action";
+import { ArticleTable } from "@/lib/types/props";
 
 const DashboardPage = async () => {
-  const result = await getAllArticles();
+  const result = await getAllArticlesLight({ limit: 50, offset: 0 });
 
   if (result.status !== "success") {
     return (
@@ -17,7 +17,7 @@ const DashboardPage = async () => {
     );
   }
 
-  const articles: Article[] = result.data;
+  const articles: ArticleTable[] = result.data;
 
   return (
     <section>
